@@ -1,6 +1,5 @@
 const puppeteer = require('puppeteer');
 const fetch = require('node-fetch');
-const got = require('got');
 const fs = require('fs');
 
 async function runTest(mode) {

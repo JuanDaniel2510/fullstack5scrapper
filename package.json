@@ -11,6 +11,7 @@
   "devDependencies": {},
   "scripts": {
     "test": "node test.js",
+    "test2": "node test2.js",
     "start": "node main.js"
   },
   "author": "JuanDaniel2510",
