@@ -1,26 +1,33 @@
 const puppeteer = require('puppeteer');
 const fetch = require('node-fetch');
 const xlsx = require('xlsx');
-const got = require('got'); //https://philna.sh/blog/2020/08/06/how-to-stream-file-downloads-in-Node-js-with-got/
+const got = require('got');
 const fs = require('fs');
 
+///////////////////////////////
+//         DOWNLOADS         //
+///////////////////////////////
 
-async function runTest(page,url) {
+async function downloadFromPage(page,url,path) {
   let data = await fetchStreamData(page,url);
 
   console.log("Saving every chat...");
   for (let i = 0; i < data.chats.length; i++) {
     const chat = data.chats[i];
-    await downloadChat(chat.url,`chat_${i}.json`)
+    await downloadChat(chat.url,`${path}chat_${i}.json`)
   }
 
   console.log("Saving every video...");
   for (let i = 0; i < data.extStreams.length; i++) {
     const video = data.extStreams[i];
-    await downloadVideo(video.streamUrl,`video_${i}.mp4`);
+    await downloadVideo(video.streamUrl,`${path}video_${i}.mp4`);
   }
 }
 
+
+///////////////////////////////
+//    RESPONSE INTERCEPT     //
+///////////////////////////////
 
 async function fetchStreamData(page,url) {
   console.log("Fetching page...");
@@ -36,6 +43,10 @@ async function fetchStreamData(page,url) {
 }
 
 
+///////////////////////////////
+//            CHAT           //
+///////////////////////////////
+
 async function downloadChat(chatURL,path) {
   console.log(`Fetching chat...`);
   const response = await fetch(chatURL);
@@ -45,6 +56,10 @@ async function downloadChat(chatURL,path) {
 }
 
 
+///////////////////////////////
+//           VIDEO           //
+///////////////////////////////
+
 let downloading = true;
 
 async function waitUntilDone(ms) {
@@ -53,6 +68,7 @@ async function waitUntilDone(ms) {
 }
 
 async function downloadVideo(videoURL,path) {
+  //https://philna.sh/blog/2020/08/06/how-to-stream-file-downloads-in-Node-js-with-got/
   const downloadStream = got.stream(videoURL);
   const fileWriterStream = fs.createWriteStream(path);
   downloadStream
@@ -61,6 +77,7 @@ async function downloadVideo(videoURL,path) {
     const transferredMB = Math.round(transferred/1048576);
     const totalMB = Math.round(total/1048576);
     process.stdout.write(`\r${transferredMB} MB / ${totalMB} MB (${percentage}%) `);
+    //TODO: https://webomnizz.com/download-a-file-with-progressbar-using-node-js/
   })
   .on("error", (error) => {
     downloading = false;
@@ -83,10 +100,16 @@ async function downloadVideo(videoURL,path) {
   await waitUntilDone(1000);
 }
 
+
+///////////////////////////////
+//         MAIN LOOP         //
+///////////////////////////////
+
 (async () => {
   //Get sheet array
   let sheet = xlsx.readFile('recordings.ods').Sheets.recordings;
-  let sheetLength = Number(sheet['!ref'].split(':')[1].replace(/\D/g, ""));
+  //let sheetLength = Number(sheet['!ref'].split(':')[1].replace(/\D/g, ""));
+  let sheetLength = 5; //Only for testing
 
   //Prepare browser
   console.log("Loadding browser...");
@@ -101,7 +124,7 @@ async function downloadVideo(videoURL,path) {
     }
   }*/
 
-  await runTest(page,'https://us.bbcollab.com/recording/d63e79ab8d5a4f65b625ffb7ab591833');
+  await downloadFromPage(page,'https://us.bbcollab.com/recording/d63e79ab8d5a4f65b625ffb7ab591833','');
   
   //Once all work is done close the browser
   console.log("Closing browser...");
