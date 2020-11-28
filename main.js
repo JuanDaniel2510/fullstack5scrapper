@@ -1,5 +1,6 @@
 const puppeteer = require('puppeteer');
 const fetch = require('node-fetch');
+const xlsx = require('xlsx');
 const fs = require('fs');
 
 async function runTest(mode) {
@@ -46,8 +47,17 @@ async function runTest(mode) {
 }
 
 (async () => {
-  await runTest('headless');
+  let sheet = xlsx.readFile('recordings.ods').Sheets.recordings;
+  let sheetLength = Number(sheet['!ref'].split(':')[1].substring(1));
+  for (let i = 2; i <= sheetLength; i++) {
+    const URL = sheet[`F${i}`].w.split(';');
+    for (let j = 0; j < URL.length; j++) {
+      console.log(`Recording ${i-1}-${j+1}: ${URL[j]}`);
+    }
+  }
+  //await runTest('headless');
   //await runTest('graphical');
+  //
 })();
 
 //process.stdout.write("Downloading " + data.length + " bytes\r");
