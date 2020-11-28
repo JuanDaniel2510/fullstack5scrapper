@@ -1,7 +1,15 @@
 const puppeteer = require('puppeteer');
 const fetch = require('node-fetch');
 const xlsx = require('xlsx');
+const got = require('got'); //https://philna.sh/blog/2020/08/06/how-to-stream-file-downloads-in-Node-js-with-got/
 const fs = require('fs');
+
+let downloading = true;
+
+async function waitUntilDone(ms) {
+  await (()=>{return new Promise(resolve => setTimeout(resolve, ms))})();
+  if (downloading) await waitUntilDone(ms);
+}
 
 async function runTest(mode) {
   console.log("Loadding browser...");
@@ -18,8 +26,7 @@ async function runTest(mode) {
   const data = await finalresponse.json();
 
   console.log("Writting stream data into JSON file...")
-  await fs.writeFileSync('streamData.json', JSON.stringify(data, null, 2));
-
+  fs.writeFileSync('streamData.json', JSON.stringify(data, null, 2));
 
   console.log("Saving every chat...");
   for (let i = 0; i < data.chats.length; i++) {
@@ -27,35 +34,63 @@ async function runTest(mode) {
     console.log(`Fetching chat ${i}...`);
     const response = await fetch(chat.url);
     const chatJson = await response.json();
-    console.log(`Saving chat ${i}...`);
     await fs.writeFileSync(`chat_${i}.json`, JSON.stringify(chatJson, null, 2));
+    console.log(`File downloaded to chat_${i}.json...`);
   }
 
 
   console.log("Saving every video...");
   for (let i = 0; i < data.extStreams.length; i++) {
     const video = data.extStreams[i];
-    console.log(`Fetching video ${i}...`);
-    const response = await fetch(video.streamUrl);
-    console.log(`Saving video ${i}...`);
-    const buffer = await response.buffer();
-    await fs.writeFileSync(`video_${i}.mp4`, buffer);
-  }
+    const downloadStream = got.stream(video.streamUrl);
+    const fileWriterStream = fs.createWriteStream(`video_${i}.mp4`);
+    downloadStream
+    .on('message',(a,b)=>{
+      console.log(a,b);
+    })
+    .on("downloadProgress", ({ transferred, total, percent }) => {
+      const percentage = Math.round(percent * 100);
+      const transferredMB = Math.round(transferred/1048576);
+      const totalMB = Math.round(total/1048576);
+      process.stdout.write(`\r${transferredMB} MB / ${totalMB} MB (${percentage}%) `);
+      //console.error(`progress: ${transferred}/${total} (${percentage}%)`);
+    })
+    .on("error", (error) => {
+      downloading = false;
+      console.error(`Download failed: ${error.message}`);
+    });
 
-  console.log("Closing browser...");
-  browser.close();
+    fileWriterStream
+    .on("error", (error) => {
+      downloading = false;
+      console.error(`Could not write file to system: ${error.message}`);
+    })
+    .on("finish", () => {
+      downloading = false;
+      console.log(`\nFile downloaded to video_${i}.mp4`);
+    });
+    
+    console.log('Starting video download stream...');
+    downloadStream.pipe(fileWriterStream);
+
+    await waitUntilDone(1000);
+
+    console.log("Closing browser...");
+    browser.close();
+  }
 }
 
 (async () => {
+  /*//Test xlsx
   let sheet = xlsx.readFile('recordings.ods').Sheets.recordings;
-  let sheetLength = Number(sheet['!ref'].split(':')[1].substring(1));
+  let sheetLength = Number(sheet['!ref'].split(':')[1].replace(/\D/g, ""));
   for (let i = 2; i <= sheetLength; i++) {
     const URL = sheet[`F${i}`].w.split(';');
     for (let j = 0; j < URL.length; j++) {
       console.log(`Recording ${i-1}-${j+1}: ${URL[j]}`);
     }
-  }
-  //await runTest('headless');
+  }*/
+  await runTest('headless');
   //await runTest('graphical');
   //
 })();
