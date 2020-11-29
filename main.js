@@ -131,8 +131,8 @@ function folderName(sheet,index) {
 (async () => {
   //Get sheet array
   let sheet = xlsx.readFile('recordings.ods').Sheets.recordings;
-  //let sheetLength = Number(sheet['!ref'].split(':')[1].replace(/\D/g, ""));
-  let sheetLength = 6; //Only for testing
+  let sheetLength = Number(sheet['!ref'].split(':')[1].replace(/\D/g, ""));
+  //let sheetLength = 6; //Only for testing
   let mainFolder = "FullStack5";
 
   //Prepare browser
@@ -151,7 +151,7 @@ function folderName(sheet,index) {
     console.log(`Day: ${folderName(sheet,i)}...`);
     for (let j = 0; j < URL.length; j++) {
       //console.log(`Recording ${i-1}-${j+1} ${mainFolder}/${folderName(sheet,i)}`);
-      let path = `${mainFolder}/${folderName(sheet,i)}`
+      let path = `${mainFolder}/${folderName(sheet,i)} of ${sheetLength-1}`
       if (!fs.existsSync(path)){
         fs.mkdirSync(path);
         await downloadFromPage(page,URL[j],path)
