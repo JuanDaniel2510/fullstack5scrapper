@@ -1,3 +1,4 @@
 node_modules
 package-lock.json
 FullStack5
+*.ods#
