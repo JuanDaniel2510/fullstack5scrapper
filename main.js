@@ -119,7 +119,7 @@ function folderName(sheet,index) {
   let month = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 
   let dayWeekName = capitalize(sheet[`B${index}`].w);
-  let monthName = month[Number(sheet[`C${index}`].w.split('/')[1])];
+  let monthName = month[Number(sheet[`C${index}`].w.split('/')[1])-1];
   let monthDay = Number(sheet[`C${index}`].w.split('/')[0]);
 
   let teacherRaw = sheet[`A${index}`].w;
