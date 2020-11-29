@@ -9,18 +9,18 @@ const fs = require('fs');
 ///////////////////////////////
 
 async function downloadFromPage(page,url,path) {
-  let data = await fetchStreamData(page,url);
+  let data = await fetchStreamData(page,url,path);
 
   console.log("Saving every chat...");
   for (let i = 0; i < data.chats.length; i++) {
     const chat = data.chats[i];
-    await downloadChat(chat.url,`${path}chat_${i}.json`)
+    await downloadChat(chat.url,`${path}/chat_${i}.json`)
   }
 
   console.log("Saving every video...");
   for (let i = 0; i < data.extStreams.length; i++) {
     const video = data.extStreams[i];
-    await downloadVideo(video.streamUrl,`${path}video_${i}.mp4`);
+    await downloadVideo(video.streamUrl,`${path}/video_${i}.mp4`);
   }
 }
 
@@ -29,7 +29,7 @@ async function downloadFromPage(page,url,path) {
 //    RESPONSE INTERCEPT     //
 ///////////////////////////////
 
-async function fetchStreamData(page,url) {
+async function fetchStreamData(page,url,path) {
   console.log("Fetching page...");
   await page.goto(url);
 
@@ -38,7 +38,7 @@ async function fetchStreamData(page,url) {
   const data = await finalresponse.json();
 
   console.log("Writting stream data into JSON file...")
-  fs.writeFileSync('streamData.json', JSON.stringify(data, null, 2));
+  fs.writeFileSync(`${path}/streamData.json`, JSON.stringify(data, null, 2));
   return data;
 }
 
@@ -98,6 +98,7 @@ async function downloadVideo(videoURL,path) {
   downloadStream.pipe(fileWriterStream);
 
   await waitUntilDone(1000);
+  downloading = true;
 }
 
 
@@ -131,19 +132,30 @@ function folderName(sheet,index) {
   //Get sheet array
   let sheet = xlsx.readFile('recordings.ods').Sheets.recordings;
   //let sheetLength = Number(sheet['!ref'].split(':')[1].replace(/\D/g, ""));
-  let sheetLength = 15; //Only for testing
+  let sheetLength = 6; //Only for testing
+  let mainFolder = "FullStack5";
 
   //Prepare browser
   console.log("Loadding browser...");
   const browser = await puppeteer.launch({args: ['--no-sandbox'],headless: true,});
   const page = await browser.newPage();
 
+  //Create Main directory if it does not exist
+  if (!fs.existsSync(mainFolder)){
+    fs.mkdirSync(mainFolder);
+  }
+
   //Loop trought every link (Column F)
   for (let i = 2; i <= sheetLength; i++) {
     const URL = sheet[`F${i}`].w.split(';');
+    console.log(`Day: ${folderName(sheet,i)}...`);
     for (let j = 0; j < URL.length; j++) {
-      console.log(`Recording ${i-1}-${j+1}  URL: ${URL[j]}`);
-      console.log(`Recording ${i-1}-${j+1} PATH: ${folderName(sheet,i)}`);
+      //console.log(`Recording ${i-1}-${j+1} ${mainFolder}/${folderName(sheet,i)}`);
+      let path = `${mainFolder}/${folderName(sheet,i)}`
+      if (!fs.existsSync(path)){
+        fs.mkdirSync(path);
+        await downloadFromPage(page,URL[j],path)
+      }
     }
   }
 
@@ -153,3 +165,4 @@ function folderName(sheet,index) {
   console.log("Closing browser...");
   browser.close();
 })();
+
