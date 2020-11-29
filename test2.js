@@ -14,9 +14,9 @@ const URLS = [
 async function runTest(page, url) {
     console.log("Fetching page...");
     await page.goto(url);
-
+    let test = 123;
     console.log("Getting item data...");
-    let itemData = await page.evaluate(() => {
+    let itemData = await page.evaluate((test) => {
         let data = {
             name: document.getElementsByClassName("articulo")[0].innerText,
             serial: document.querySelector(".ficha-producto__datos-de-compra > div:nth-child(2) > div:nth-child(2) > span:nth-child(2)").innerText,
@@ -25,8 +25,9 @@ async function runTest(page, url) {
             avaliable: document.getElementById("notify-me") == undefined
         }
         data.purchasable = (data.avaliable && data.shop == 'PcComponentes');
+        data.test = test;
         return data;
-    });
+    },test);
     console.log("Done.");
     return itemData;
 }
