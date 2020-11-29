@@ -14,13 +14,17 @@ async function downloadFromPage(page,url,path) {
   console.log("Saving every chat...");
   for (let i = 0; i < data.chats.length; i++) {
     const chat = data.chats[i];
-    await downloadChat(chat.url,`${path}/chat_${i}.json`)
+    let counter = 0;
+    while (fs.existsSync(`${path}/chat_${counter}.json`)) {counter++;}
+    await downloadChat(chat.url,`${path}/chat_${counter}.json`)
   }
 
   console.log("Saving every video...");
   for (let i = 0; i < data.extStreams.length; i++) {
     const video = data.extStreams[i];
-    await downloadVideo(video.streamUrl,`${path}/video_${i}.mp4`);
+    let counter = 0;
+    while (fs.existsSync(`${path}/video_${counter}.mp4`)) {counter++;}
+    await downloadVideo(video.streamUrl,`${path}/video_${counter}.mp4`);
   }
 }
 
