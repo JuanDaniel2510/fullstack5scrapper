@@ -122,10 +122,17 @@ function folderName(sheet,index) {
   let monthName = month[Number(sheet[`C${index}`].w.split('/')[1])];
   let monthDay = Number(sheet[`C${index}`].w.split('/')[0]);
 
-  let teacher = sheet[`A${index}`].w.replace(';',' y ');
-  let lesson = sheet[`D${index}`].w.replace(';',' y ');
+  let teacherRaw = sheet[`A${index}`].w;
+  let lessonRaw = sheet[`D${index}`].w;
 
-  return `${('0'+(index-1)).slice(-2)} - ${dayWeekName} ${monthDay} de ${monthName} - ${teacher} [${lesson}]`;
+  let teacher = teacherRaw.split(';');
+  let lesson = lessonRaw.split(';');
+
+  if (teacher.length > 1 && lesson.length > 1){
+    return `${('0'+(index-1)).slice(-2)} - ${dayWeekName} ${monthDay} de ${monthName} - ${teacher[0]} [${lesson[0]}] & ${teacher[1]} [${lesson[1]}]`;
+  } else {
+    return `${('0'+(index-1)).slice(-2)} - ${dayWeekName} ${monthDay} de ${monthName} - ${teacherRaw.replace(';',' y ')} [${lessonRaw.replace(';',' y ')}]`;
+  }
 }
 
 ///////////////////////////////
@@ -162,8 +169,6 @@ function folderName(sheet,index) {
       }
     }
   }
-
-  //await downloadFromPage(page,'https://us.bbcollab.com/recording/d63e79ab8d5a4f65b625ffb7ab591833','');
   
   //Once all work is done close the browser
   console.log("Closing browser...");
