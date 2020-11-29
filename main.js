@@ -102,6 +102,28 @@ async function downloadVideo(videoURL,path) {
 
 
 ///////////////////////////////
+//          FS STUFF         //
+///////////////////////////////
+
+function capitalize(s){
+  if (typeof s !== 'string') return ''
+  return s.charAt(0).toUpperCase() + s.slice(1)
+}
+
+function folderName(sheet,index) {
+  let month = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+  let dayWeekName = capitalize(sheet[`B${index}`].w);
+  let monthName = month[Number(sheet[`C${index}`].w.split('/')[1])];
+  let monthDay = Number(sheet[`C${index}`].w.split('/')[0]);
+
+  let teacher = sheet[`A${index}`].w.replace(';',' y ');
+  let lesson = sheet[`D${index}`].w.replace(';',' y ');
+
+  return `${('0'+(index-1)).slice(-2)} - ${dayWeekName} ${monthDay} de ${monthName} - ${teacher} [${lesson}]`;
+}
+
+///////////////////////////////
 //         MAIN LOOP         //
 ///////////////////////////////
 
@@ -109,7 +131,7 @@ async function downloadVideo(videoURL,path) {
   //Get sheet array
   let sheet = xlsx.readFile('recordings.ods').Sheets.recordings;
   //let sheetLength = Number(sheet['!ref'].split(':')[1].replace(/\D/g, ""));
-  let sheetLength = 5; //Only for testing
+  let sheetLength = 15; //Only for testing
 
   //Prepare browser
   console.log("Loadding browser...");
@@ -117,14 +139,15 @@ async function downloadVideo(videoURL,path) {
   const page = await browser.newPage();
 
   //Loop trought every link (Column F)
-  /*for (let i = 2; i <= sheetLength; i++) {
+  for (let i = 2; i <= sheetLength; i++) {
     const URL = sheet[`F${i}`].w.split(';');
     for (let j = 0; j < URL.length; j++) {
-      console.log(`Recording ${i-1}-${j+1}: ${URL[j]}`);
+      console.log(`Recording ${i-1}-${j+1}  URL: ${URL[j]}`);
+      console.log(`Recording ${i-1}-${j+1} PATH: ${folderName(sheet,i)}`);
     }
-  }*/
+  }
 
-  await downloadFromPage(page,'https://us.bbcollab.com/recording/d63e79ab8d5a4f65b625ffb7ab591833','');
+  //await downloadFromPage(page,'https://us.bbcollab.com/recording/d63e79ab8d5a4f65b625ffb7ab591833','');
   
   //Once all work is done close the browser
   console.log("Closing browser...");
