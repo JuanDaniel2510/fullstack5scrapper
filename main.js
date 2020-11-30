@@ -135,6 +135,23 @@ function folderName(sheet,index) {
   }
 }
 
+function addExtraInfo(path,sheet,index) {
+  let streamData = JSON.parse(fs.readFileSync(`${path}/streamData.json`));
+  let = infoJSON = {
+    teacher: sheet[`A${index}`].w.split(';'),
+    lesson: sheet[`D${index}`].w.split(';'),
+    title: sheet[`E${index}`].w,
+    date: sheet[`C${index}`].w,
+    recording:{
+      rawName: streamData.name,
+      duration: streamData.duration,
+      created: streamData.created
+    }
+  };
+  fs.writeFileSync(`${path}/info.json`, JSON.stringify(infoJSON, null, 2));
+  fs.unlinkSync(`${path}/streamData.json`);
+}
+
 ///////////////////////////////
 //         MAIN LOOP         //
 ///////////////////////////////
@@ -167,6 +184,7 @@ function folderName(sheet,index) {
           //console.log(`Recording ${i-1}-${j+1} ${mainFolder}/${folderName(sheet,i)}`);
           await downloadFromPage(page,URL[j],path)
       }
+      addExtraInfo(path,sheet,i);
     }
   }
   
