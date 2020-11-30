@@ -160,12 +160,12 @@ function folderName(sheet,index) {
   for (let i = 2; i <= sheetLength; i++) {
     const URL = sheet[`F${i}`].w.split(';');
     console.log(`Day: ${folderName(sheet,i)} of ${sheetLength-1}...`);
-    for (let j = 0; j < URL.length; j++) {
-      //console.log(`Recording ${i-1}-${j+1} ${mainFolder}/${folderName(sheet,i)}`);
-      let path = `${mainFolder}/${folderName(sheet,i)}`
-      if (!fs.existsSync(path)){
-        fs.mkdirSync(path);
-        await downloadFromPage(page,URL[j],path)
+    let path = `${mainFolder}/${folderName(sheet,i)}`
+    if (!fs.existsSync(path)){
+      fs.mkdirSync(path);
+      for (let j = 0; j < URL.length; j++) {
+          //console.log(`Recording ${i-1}-${j+1} ${mainFolder}/${folderName(sheet,i)}`);
+          await downloadFromPage(page,URL[j],path)
       }
     }
   }
