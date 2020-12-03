@@ -11,7 +11,6 @@
   },
   "devDependencies": {},
   "scripts": {
-    "price": "node priceCheckTest.js",
     "sleep": "node sleepTest.js",
     "start": "node main.js"
   },
