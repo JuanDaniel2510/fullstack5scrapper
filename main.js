@@ -175,16 +175,19 @@ function addExtraInfo(path,sheet,index) {
 
   //Loop trought every link (Column F)
   for (let i = 2; i <= sheetLength; i++) {
-    const URL = sheet[`F${i}`].w.split(';');
-    console.log(`Day: ${folderName(sheet,i)} of ${sheetLength-1}...`);
-    let path = `${mainFolder}/${folderName(sheet,i)}`
-    if (!fs.existsSync(path)){
-      fs.mkdirSync(path);
-      for (let j = 0; j < URL.length; j++) {
-          //console.log(`Recording ${i-1}-${j+1} ${mainFolder}/${folderName(sheet,i)}`);
-          await downloadFromPage(page,URL[j],path)
+    if(sheet[`F${i}`] != undefined){
+      const URL = sheet[`F${i}`].w.split(';');
+      console.log(`Día: ${folderName(sheet,i)} de ${sheetLength-1}...`);
+      let path = `${mainFolder}/${folderName(sheet,i)}`
+      if (!fs.existsSync(path)){
+        fs.mkdirSync(path);
+        for (let j = 0; j < URL.length; j++) {
+            await downloadFromPage(page,URL[j],path)
+        }
+        addExtraInfo(path,sheet,i);
       }
-      addExtraInfo(path,sheet,i);
+    } else {
+      console.log(`Día: ${folderName(sheet,i)} of ${sheetLength-1} Skipped`);
     }
   }
   
