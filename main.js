@@ -64,8 +64,8 @@ async function downloadChat(chatURL,path) {
 //           VIDEO           //
 ///////////////////////////////
 
-async function sleep(ms) {
-  await (()=>{return new Promise(resolve => setTimeout(resolve, ms))})();
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 async function downloadVideo(videoURL,path) {
