@@ -64,24 +64,21 @@ async function downloadChat(chatURL,path) {
 //           VIDEO           //
 ///////////////////////////////
 
-let downloading = true;
-
-async function waitUntilDone(ms) {
+async function sleep(ms) {
   await (()=>{return new Promise(resolve => setTimeout(resolve, ms))})();
-  if (downloading) await waitUntilDone(ms);
 }
 
 async function downloadVideo(videoURL,path) {
-  //https://philna.sh/blog/2020/08/06/how-to-stream-file-downloads-in-Node-js-with-got/
+  let downloading = true;
   const downloadStream = got.stream(videoURL);
   const fileWriterStream = fs.createWriteStream(path);
+
   downloadStream
   .on("downloadProgress", ({ transferred, total, percent }) => {
     const percentage = Math.round(percent * 100);
     const transferredMB = Math.round(transferred/1048576);
     const totalMB = Math.round(total/1048576);
     process.stdout.write(`\r${transferredMB} MB / ${totalMB} MB (${percentage}%) `);
-    //TODO: https://webomnizz.com/download-a-file-with-progressbar-using-node-js/
   })
   .on("error", (error) => {
     downloading = false;
@@ -101,8 +98,10 @@ async function downloadVideo(videoURL,path) {
   console.log('Starting video download stream...');
   downloadStream.pipe(fileWriterStream);
 
-  await waitUntilDone(1000);
-  downloading = true;
+  //No puedo usar await con la librería GOT asi que uso esto como parche
+  while (downloading) {
+    await sleep(100);
+  }
 }
 
 
@@ -160,7 +159,6 @@ function addExtraInfo(path,sheet,index) {
   //Get sheet array
   let sheet = xlsx.readFile('recordings.ods').Sheets.recordings;
   let sheetLength = Number(sheet['!ref'].split(':')[1].replace(/\D/g, ""));
-  //let sheetLength = 6; //Only for testing
   let mainFolder = "FullStack5";
 
   //Prepare browser
