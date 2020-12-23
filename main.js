@@ -9,7 +9,16 @@ const fs = require('fs');
 ///////////////////////////////
 
 async function downloadFromPage(page,url,path) {
-  let data = await fetchStreamData(page,url,path);
+  let data = {};
+  let error = false;
+  await fetchStreamData(page,url,path)
+  .then(res=>{
+    data = res;
+  }).catch(() =>{
+    error = true;
+  });
+
+  if (error) return false;
 
   console.log("Saving every chat...");
   for (let i = 0; i < data.chats.length; i++) {
@@ -26,6 +35,8 @@ async function downloadFromPage(page,url,path) {
     while (fs.existsSync(`${path}/video_${counter}.mp4`)) {counter++;}
     await downloadVideo(video.streamUrl,`${path}/video_${counter}.mp4`);
   }
+
+  return true;
 }
 
 
@@ -173,16 +184,23 @@ function addExtraInfo(path,sheet,index) {
 
   //Loop trought every link (Column F)
   for (let i = 2; i <= sheetLength; i++) {
-    if(sheet[`F${i}`] != undefined){
+    if(sheet[`A${i}`] && sheet[`B${i}`] && sheet[`C${i}`] && sheet[`D${i}`] && sheet[`E${i}`] && sheet[`F${i}`]){
+      let error = false;
       const URL = sheet[`F${i}`].w.split(';');
       console.log(`Día: ${folderName(sheet,i)} de ${sheetLength-1}...`);
       let path = `${mainFolder}/${folderName(sheet,i)}`
       if (!fs.existsSync(path)){
         fs.mkdirSync(path);
         for (let j = 0; j < URL.length; j++) {
-            await downloadFromPage(page,URL[j],path)
+          error = !await downloadFromPage(page,URL[j],path);
+          if (error) break;
         }
-        addExtraInfo(path,sheet,i);
+        if (!error) {
+          addExtraInfo(path,sheet,i)
+        } else {
+          console.log("ERROR");
+          fs.rmdirSync(path);
+        }
       }
     } else {
       console.log(`Día: ${folderName(sheet,i)} of ${sheetLength-1} Skipped`);
