@@ -4,6 +4,8 @@ Web scrapper for Fullstack5 courses
 <br>
 ### Ejemplo de como queda el fichero que lee el programa:
 ¡Para no descargar un día elimina el enlace!<br>
+El fichero lo podrán encontrar en el canal de fullStack en Slack<br>
+Descargenlo en la propia carpeta del repo<br>
 ![Ejemplo de recordings.ods](https://github.com/JuanDaniel2510/fullstack5scrapper/blob/master/doc/recordingsExample.png?raw=true)<br>
 <br>
 ### Tenga cuidado del peso del curso entero:<br>
